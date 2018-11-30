@@ -1,49 +1,435 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>An opinionated introduction to Kotlin</title>
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/league.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Printing and PDF exports -->
+    <script>
+        let link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
+    <style>
+        .java {
+            /*border: blue;*/
+        }
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+        .kotlin {
+            /*background-color: lightgreen;*/
+        }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <h1>An opinionated introduction to Kotlin</h1>
+        </section>
+        <section>
+            <section>
+                <h2>A plea for immutability</h2>
+                <ul>
+                    <li class="fragment"><em>Immutable</em> means that an object, once created, can’t be changed.</li>
+                    <li class="fragment">Instead of changing a property of the object you have to create a copy with the
+                        changed property.
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h3>Sequential mutability</h3>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+                <ul>
+                    <li>mutability encourages side effects in your code</li>
+                    <li>you never know what happens to your data structures once you give them away</li>
+                </ul>
+
+                <pre><code class="java" data-trim contenteditable>
+void main() {
+    Pojo pojo = new Pojo();
+    pojo.setProperty(123);
+
+    doSomething(pojo);
+
+    // contents of pojo not clear here
+    Integer unclear = pojo.getProperty();
+}
+
+void doSomething(Pojo pojo) {
+    // ...
+    pojo.setProperty(4711);
+    // ...
+}
+					</code></pre>
+            </section>
+            <section>
+                <h3>Mutable collections</h3>
+                <pre><code class="java" data-trim contenteditable>
+public class Club {
+
+    private Set&lt;Member&gt; members = new HashSet<>();
+
+    public void addMember(Member member) { /*...*/ }
+
+    public Set&lt;Member&gt; getMembers() {
+        return members;
+    }
+
+}
+					</code></pre>
+            </section>
+            <section>
+                <h3>Shared mutability</h3>
+                <ul>
+                    <li>mutability is already hard in sequential code</li>
+                    <li>mutability is your worst enemy in concurrent scenarios</li>
+                    <li>side effects are almost impossible to test reliably</li>
+                    <li>debugging exceptions, race-conditions, and deadlocks is a gigantic pain</li>
+                </ul>
+            </section>
+            <section>
+                <p>Did you know that <code>SimpleDateFormat</code> is not thread-safe as it contains mutable state?</p>
+            </section>
+            <section>
+                <h3>Immutability</h3>
+                <ul>
+                    <li>data can safely be shared</li>
+                    <li>inherently thread-safe</li>
+                    <li>immutability is cheaper than you think</li>
+                    <li>gives compiler more hints to reason about your code and optimize</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Immutability in Kotlin</h3>
+
+                <p>A <code>var</code> can be manipulated</p>
+                <pre><code class="kotlin" data-trim contenteditable>
+var x = "Hello"
+x = x + " World!"
+                </code></pre>
+
+                <p class="fragment" data-fragment-index="1">A <code>val</code> is an immutable value and could be
+                    inlined everywhere.</p>
+                <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
+val x = "Hello"       // same as `final` in Java
+x = x + " World!"     // COMPILE TIME ERROR
+                </code></pre>
+            </section>
+        </section>
+
+
+        <section>
+            <section>
+                <h2>Type Checker</h2>
+
+                <p class="fragment">If it has been <em>proven</em> by the compiler<br/> it doesn't need to be tested.
+                </p>
+            </section>
+            <section>
+                <h3>Types should support you and not be in your way</h3>
+                <ul>
+                    <li class="fragment">not as in <em>Java</em> where is the type system is to weak</li>
+                    <li class="fragment">not as in <em>Scala</em> where the type system can overwhelm you (implicts,
+                        higher-kinded-types, etc.)
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h3>Co-variant types not supported in Java</h3>
+                <pre class="fragment" data-fragment-index="1"><code class="java" data-trim contenteditable>
+List&lt;Integer&gt; integers = new ArrayList&lt;&gt;();
+List&lt;Number&gt; numbers = integers;
+            </code></pre>
+
+                <p class="fragment" data-fragment-index="2">
+                    ... doesn't work. We have to write code (which diminishes performance) to overcome the lacks of the
+                    type checker ...
+                </p>
+                <pre class="fragment" data-fragment-index="2"><code class="java" data-trim contenteditable>
+List&lt;Integer&gt; integers = new ArrayList&lt;&gt;();
+List&lt;Number&gt; numbers = new ArrayList&lt;&gt;(integers.size());
+
+for (Integer integer : integers) {
+    numbers.add(integer);
+}
+                </code></pre>
+            </section>
+            <section>
+                <h3>Nullability can be expressed at type level</h3>
+                <pre><code class="java" data-trim contenteditable>
+final int length;
+if(text != null){
+  length = text.length();
+} else {
+  length = 0;
+}
+                </code></pre>
+                <p class="fragment" data-fragment-index="1">You can safe all the <code class="java">if (obj != null)
+                    {}</code> branches in Kotlin</p>
+                <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
+val length = text?.length ?: 0 // length has type Int?
+
+val length = text!!.length // throws NPE if text == null
+                </code></pre>
+
+            </section>
+
+            <section>
+                <h3>Smart casts</h3>
+                <p>Java</p>
+                <pre><code class="java" data-trim contenteditable>
+if (a instanceof String){
+  final String result = ((String) a).substring(1);
+}
+                </code></pre>
+                <p class="fragment" data-fragment-index="1">Kotlin</p>
+                <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
+if (a is String) {
+  val result = a.substring(1)
+}
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Type inference</h3>
+                <pre><code class="kotlin" data-trim contenteditable>
+val ints   : List&lt;Int&gt;    = listOf(1, 2, 3)
+val doubles: List&lt;Double&gt; = listOf(1.0, 2.0, 3.0)
+
+val numbers: List&lt;Number&gt; = ints + doubles
+				</code></pre>
+                <p class="fragment" data-fragment-index="1">... can even be ...</p>
+
+                <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
+val ints    = listOf(1, 2, 3)
+val doubles = listOf(1.0, 2.0, 3.0)
+
+val numbers = ints + doubles
+				</code></pre>
+            </section>
+
+            <!--
+- reified types
+            -->
+
+        </section>
+        <section>
+            <section>
+                <h2>Kotlin let's you write concise code</h2>
+
+                <p>Aren't you tired of writing</p>
+                <ul>
+                    <li class="fragment">nullability checks</li>
+                    <li class="fragment">POJOs</li>
+                    <li class="fragment">loops for basic collection operations</li>
+                    <li class="fragment">cascading if-statements</li>
+                    <li class="fragment">...</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Data classes</h3>
+                <pre><code>GOTO IDE</code></pre>
+                <aside class="notes">
+                    FileServiceJ und FileServiceK
+                </aside>
+            </section>
+            <section>
+                <h3>Switch statements</h3>
+                <pre><code class="kotlin" data-trim contenteditable>
+val yResult = when {
+  isNegative(y) -> "is negative"
+  isZero(y)     -> "is zero"
+  isOdd(y)      -> "is odd"
+  else          -> "otherwise"
+}
+
+val x = // value
+val xResult = when (x) {
+  0, 11      -> "0 or 11"
+  in 1..10   -> "from 1 to 10"
+  !in 12..14 -> "not from 12 to 14"
+  else       -> if (isOdd(x)) { "is odd" } else { "otherwise" }
+}
+					</code></pre>
+            </section>
+            <section>
+                <h3>Named arguments and default parameters</h3>
+                <p>Java</p>
+                <pre><code class="java" data-trim contenteditable>
+public static File createFile(String filename) { }
+
+public static File createFile(String filename, boolean appendDate) { }
+
+public static File createFile(String filename, boolean appendDate,
+                              boolean executable) { }
+
+public static File createExecutableFile(String filename) { }
+                </code></pre>
+
+                <p>Kotlin</p>
+                <pre><code class="kotlin" data-trim contenteditable>
+fun createFile(filename: String,
+               appendDate: Boolean = false,
+               executable: Boolean = false): File { }
+				</code></pre>
+            </section>
+            <section>
+                <h3>Named arguments and default parameters</h3>
+                <p>Java</p>
+                <pre><code class="java" data-trim contenteditable>
+createFile("file.txt", true, false);
+                </code></pre>
+
+                <p>Kotlin</p>
+                <pre><code class="kotlin" data-trim contenteditable>
+createFile("file.txt", appendDate = true, executable = true)
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>String interpolation</h3>
+                <pre><code class="kotlin" data-trim contenteditable>
+val text = "My name is: $prename $lastName"
+val otherText = "My name is: ${name.substring(2)}"
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Collection functions</h3>
+                <p>Java</p>
+                <pre><code class="java" data-trim contenteditable>
+final List&lt;Integer&gt; evens = new ArrayList&lt;&gt;();
+final List&lt;Integer&gt; odds = new ArrayList&lt;&gt;();
+for (int number : numbers){
+  if ((number % 2) == 0) {
+    evens.add(number);
+  } else {
+    odds.add(number);
+  }
+}                </code></pre>
+                <p class="fragment" data-fragment-index="1">Kotlin</p>
+                <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
+val (evens, odds) = numbers.partition { it % 2 == 0 }
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Advantages of collection functions</h3>
+                <ul>
+                    <li>readability not distracted by control structures</li>
+                    <li>properly named / intent is clear</li>
+                    <li>optimal implementation left to the collection
+                        <ul>
+                            <li>different sort algorithms</li>
+                            <li>parallel collections</li>
+                            <li>...</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p class="fragment" data-fragment-index="2">
+                    See <a target="_blank" href="http://jussi.hallila.com/Kollections/">http://jussi.hallila.com/Kollections/</a>
+                </p>
+            </section>
+            <section>
+                <h2>Coroutines</h2>
+                <p>Since Kotlin 1.3.0 asynchronous programming is a first class citizen!</p>
+                <p>Cannot be covered here 😞</p>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h2>Java Interoperability</h2>
+                <blockquote>
+                    Kotlin is designed with Java Interoperability in mind
+                </blockquote>
+                <ul>
+                    <li>Integration is almost seamless<br/>(way better than in Scala)</li>
+                    <li class="fragment highlight-red">Step-by-step migration of a project is an option!</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Migration</h3>
+                <img src="lib/convert-java-to-kotlin.png" style="border: 0">
+                <ul>
+                    <li>there is a Java 2 Kotlin button in IntelliJ</li>
+                    <li>follow the <em>IDEA intentions</em> and apply the suggested fixes to improve your code</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Embrace the functional features of Kotlin</h3>
+                <ul>
+                    <li>the convert button is just the first step</li>
+                    <li>don't continue writing Java imperative style in Kotlin</li>
+                    <li>try to find a solution without <code>var</code>s</li>
+                    <li>try to find a solution without loops</li>
+                    <li>adopt the functional approaches</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Pitfalls during migration</h3>
+                <ul>
+                    <li>Kotlin functions/methods are <code>final</code> by default</li>
+                    <li>causes weird issues with Hibernate and Spring</li>
+                    <li>you have to mark them <code>open</code> explicitly</li>
+                    <li><code>org.jetbrains.kotlin.plugin.allopen</code> is your friend</li>
+                </ul>
+            </section>
+            <section>
+                <h3>Other targets</h3>
+                <ul>
+                    <li>Kotlin compiles to JVM bytecode or JavaScript or even <span class="fragment highlight-red">native</span>
+                    </li>
+                </ul>
+            </section>
+        </section>
+        <section>
+            <img src="lib/ktor.png" border="0" height="184" style="border: 0">
+            <blockquote>An asynchronous web framework for Kotlin</blockquote>
+            <p><a href="https://ktor.io" target="_blank">https://ktor.io</a></p>
+            <p><a href="https://github.com/ktorio/ktor" target="_blank">https://github.com/ktorio/ktor</a></p>
+        </section>
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Better type checker leads to fewer tests</li>
+                <li>More concise code leads to fewer errors</li>
+                <li>Clean architecture is not a pain anymore</li>
+                <li>Migration is easy and possible step-by-step</li>
+            </ul>
+        </section>
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+        dependencies: [
+            {src: 'plugin/markdown/marked.js'},
+            {src: 'plugin/markdown/markdown.js'},
+            {src: 'plugin/notes/notes.js', async: true},
+            {
+                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                    hljs.initHighlightingOnLoad();
+                }
+            }
+        ]
+    });
+</script>
+</body>
 </html>

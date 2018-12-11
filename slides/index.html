@@ -138,7 +138,7 @@ x = x + " World!"     // COMPILE TIME ERROR
             <section>
                 <h3>Types should support you and not be in your way</h3>
                 <ul>
-                    <li class="fragment">not as in <em>Java</em> where is the type system is to weak</li>
+                    <li class="fragment">not as in <em>Java</em> where is the type system is too weak</li>
                     <li class="fragment">not as in <em>Scala</em> where the type system can overwhelm you (implicts,
                         higher-kinded-types, etc.)
                     </li>
@@ -371,7 +371,8 @@ val (evens, odds) = numbers.partition { it % 2 == 0 }
                 <ul>
                     <li>the convert button is just the first step</li>
                     <li>don't continue writing Java imperative style in Kotlin</li>
-                    <li>try to find a solution without <code>var</code>s</li>
+		    <li>try to eliminate nullable types where possible</li>
+		    <li>try to find a solution without <code>var</code>s</li>
                     <li>try to find a solution without loops</li>
                     <li>adopt the functional approaches</li>
                 </ul>

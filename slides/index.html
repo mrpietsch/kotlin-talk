@@ -177,8 +177,7 @@ if(text != null){
                 <p class="fragment" data-fragment-index="1">You can safe all the <code class="java">if (obj != null)
                     {}</code> branches in Kotlin</p>
                 <pre class="fragment" data-fragment-index="1"><code class="kotlin" data-trim contenteditable>
-val length = text?.length ?: 0 // length has type Int?
-
+val length = text?.length  // length has type Int?
 val length = text!!.length // throws NPE if text == null
                 </code></pre>
 
